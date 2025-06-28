@@ -10,7 +10,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.checkdev.notification.telegram.action.Action;
 import ru.checkdev.notification.telegram.action.InfoAction;
 import ru.checkdev.notification.telegram.action.RegAction;
-import ru.checkdev.notification.telegram.service.TgAuthCallWebClint;
+import ru.checkdev.notification.telegram.service.TgAuthCallWebClient;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ import java.util.Map;
 @Component
 @Slf4j
 public class TgRun {
-    private final TgAuthCallWebClint tgAuthCallWebClint;
+    private final TgAuthCallWebClient tgAuthCallWebClient;
     @Value("${tg.username}")
     private String username;
     @Value("${tg.token}")
@@ -35,8 +35,8 @@ public class TgRun {
     @Value("${server.site.url.login}")
     private String urlSiteAuth;
 
-    public TgRun(TgAuthCallWebClint tgAuthCallWebClint) {
-        this.tgAuthCallWebClint = tgAuthCallWebClint;
+    public TgRun(TgAuthCallWebClient tgAuthCallWebClint) {
+        this.tgAuthCallWebClient = tgAuthCallWebClint;
     }
 
     @Bean
@@ -44,7 +44,7 @@ public class TgRun {
         Map<String, Action> actionMap = Map.of(
                 "/start", new InfoAction(List.of(
                         "/start", "/new")),
-                "/new", new RegAction(tgAuthCallWebClint, urlSiteAuth)
+                "/new", new RegAction(tgAuthCallWebClient, urlSiteAuth)
         );
         try {
             BotMenu menu = new BotMenu(actionMap, username, token);

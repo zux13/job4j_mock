@@ -18,6 +18,10 @@ public class TgAuthCallWebClient {
         this.webClient = WebClient.create(urlAuth);
     }
 
+    public void setWebClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
     /**
      * Метод GET с применением Retry и Circuit Breaker
      *

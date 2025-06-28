@@ -38,12 +38,12 @@ class TgAuthCallWebClintTest {
     @Mock
     private WebClient.ResponseSpec responseMock;
 
-    private TgAuthCallWebClint tgAuthCallWebClint;
+    private TgAuthCallWebClient tgAuthCallWebClient;
 
     @BeforeEach
     void setUp() {
-        tgAuthCallWebClint = new TgAuthCallWebClint(URL);
-        tgAuthCallWebClint.setWebClient(webClientMock);
+        tgAuthCallWebClient = new TgAuthCallWebClient(URL);
+        tgAuthCallWebClient.setWebClient(webClientMock);
     }
 
 
@@ -60,7 +60,7 @@ class TgAuthCallWebClintTest {
         when(requestHeadersUriMock.uri("/person/" + personId)).thenReturn(requestHeadersMock);
         when(requestHeadersMock.retrieve()).thenReturn(responseMock);
         when(responseMock.bodyToMono(PersonDTO.class)).thenReturn(Mono.just(personDto));
-        PersonDTO actual = tgAuthCallWebClint.doGet("/person/" + personId).block();
+        PersonDTO actual = tgAuthCallWebClient.doGet("/person/" + personId).block();
         assertThat(actual).isEqualTo(personDto);
     }
 
@@ -71,7 +71,7 @@ class TgAuthCallWebClintTest {
         when(requestHeadersUriMock.uri("/person/" + personId)).thenReturn(requestHeadersMock);
         when(requestHeadersMock.retrieve()).thenReturn(responseMock);
         when(responseMock.bodyToMono(PersonDTO.class)).thenReturn(Mono.error(new Throwable("Error")));
-        assertThatThrownBy(() -> tgAuthCallWebClint.doGet("/person/" + personId).block())
+        assertThatThrownBy(() -> tgAuthCallWebClient.doGet("/person/" + personId).block())
                 .isInstanceOf(Throwable.class)
                 .hasMessageContaining("Error");
     }
@@ -89,7 +89,7 @@ class TgAuthCallWebClintTest {
         when(requestBodyMock.bodyValue(personDto)).thenReturn(requestHeadersMock);
         when(requestHeadersMock.retrieve()).thenReturn(responseMock);
         when(responseMock.bodyToMono(Object.class)).thenReturn(Mono.just(personDto));
-        Mono<Object> objectMono = tgAuthCallWebClint.doPost("/person/created", personDto);
+        Mono<Object> objectMono = tgAuthCallWebClient.doPost("/person/created", personDto);
         PersonDTO actual = (PersonDTO) objectMono.block();
         assertThat(actual).isEqualTo(personDto);
     }

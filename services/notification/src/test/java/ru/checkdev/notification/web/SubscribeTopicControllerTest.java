@@ -14,11 +14,10 @@ import ru.checkdev.notification.NtfSrv;
 import ru.checkdev.notification.domain.SubscribeTopic;
 import ru.checkdev.notification.service.SubscribeTopicService;
 import ru.checkdev.notification.telegram.TgRun;
-import ru.checkdev.notification.telegram.service.TgAuthCallWebClint;
+import ru.checkdev.notification.telegram.service.TgAuthCallWebClient;
 import java.util.List;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,7 +36,7 @@ public class SubscribeTopicControllerTest {
     private TgRun tgRun;
 
     @MockBean
-    private TgAuthCallWebClint tgAuthCallWebClint;
+    private TgAuthCallWebClient tgAuthCallWebClient;
 
     @MockBean
     private TemplateController templateController;
