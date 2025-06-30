@@ -6,13 +6,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.job4j.site.dto.CategoryDTO;
+import ru.job4j.site.dto.InterviewDTO;
+import ru.job4j.site.dto.TopicDTO;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
 public class CategoriesService {
     private final TopicsService topicsService;
+    private final InterviewsService interviewsService;
 
     public List<CategoryDTO> getAll() throws JsonProcessingException {
         var text = new RestAuthCall("http://localhost:9902/categories/").get();
@@ -61,8 +66,20 @@ public class CategoriesService {
 
     public List<CategoryDTO> getMostPopular() throws JsonProcessingException {
         var categoriesDTO = getPopularFromDesc();
+        List<InterviewDTO> newInterviews = interviewsService.getByType(1);
+        Map<Integer, Integer> newInterviewByTopicId = newInterviews.stream()
+                .collect(Collectors.groupingBy(
+                        InterviewDTO::getTopicId,
+                        Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+                ));
+
         for (var categoryDTO : categoriesDTO) {
-            categoryDTO.setTopicsSize(topicsService.getByCategory(categoryDTO.getId()).size());
+            List<TopicDTO> topics = topicsService.getByCategory(categoryDTO.getId());
+            categoryDTO.setTopicsSize(topics.size());
+            int count = topics.stream()
+                    .mapToInt(topicDTO -> newInterviewByTopicId.getOrDefault(topicDTO.getId(), 0))
+                    .sum();
+            categoryDTO.setNewInterviewsCount(count);
         }
         return categoriesDTO;
     }
