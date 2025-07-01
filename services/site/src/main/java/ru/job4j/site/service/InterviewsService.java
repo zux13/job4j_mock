@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.job4j.site.dto.InterviewDTO;
+import ru.job4j.site.exception.IdNotFoundException;
 import ru.job4j.site.util.RestPageImpl;
 
 import java.util.Collection;
@@ -45,7 +46,11 @@ public class InterviewsService {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         var pageType = mapper.getTypeFactory()
                 .constructParametricType(RestPageImpl.class, InterviewDTO.class);
-        return mapper.readValue(text, pageType);
+        Page<InterviewDTO> result = mapper.readValue(text, pageType);
+        if (result.isEmpty()) {
+            throw new IdNotFoundException("Interviews for topicId " + topicId + " not found");
+        }
+        return result;
     }
 
     public Page<InterviewDTO> getByTopicsIds(List<Integer> topicIds, int page, int size)
