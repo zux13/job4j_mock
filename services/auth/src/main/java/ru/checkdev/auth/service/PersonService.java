@@ -310,4 +310,32 @@ public class PersonService {
         emptyNames.addAll(Arrays.asList(extra));
         return emptyNames;
     }
+
+    @Transactional
+    public Optional<Profile> bindTelegram(String email, String password, Long telegramId) {
+        Optional<Profile> result = Optional.empty();
+        Profile profile = this.persons.findByEmail(email);
+        if (profile != null && this.encoding.matches(password, profile.getPassword())) {
+            profile.setTelegramId(telegramId);
+            this.persons.save(profile);
+            result = Optional.of(profile);
+        }
+        return result;
+    }
+
+    @Transactional
+    public Optional<Profile> unbindTelegram(String email, String password) {
+        Optional<Profile> result = Optional.empty();
+        Profile profile = this.persons.findByEmail(email);
+        if (profile != null && this.encoding.matches(password, profile.getPassword())) {
+            profile.setTelegramId(null);
+            this.persons.save(profile);
+            result = Optional.of(profile);
+        }
+        return result;
+    }
+
+    public List<Profile> findByTelegramId(Long telegramId) {
+        return this.persons.findByTelegramId(telegramId);
+    }
 }

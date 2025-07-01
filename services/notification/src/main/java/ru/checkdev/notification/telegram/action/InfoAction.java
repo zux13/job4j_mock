@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 3. Мидл
@@ -33,7 +34,9 @@ public class InfoAction implements Action {
     }
 
     @Override
-    public BotApiMethod<Message> callback(Message message) {
+    public BotApiMethod<Message> callback(Message message, Map<String, String> bindingBy) {
+        var chatId = message.getChatId().toString();
+        bindingBy.remove(chatId);
         return handle(message);
     }
 }

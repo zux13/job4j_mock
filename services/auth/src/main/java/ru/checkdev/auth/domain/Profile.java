@@ -76,6 +76,8 @@ public class Profile {
 
     private Calendar created;
 
+    private Long telegramId;
+
     public Profile() {
     }
 
@@ -303,6 +305,14 @@ public class Profile {
 
     public void setBrief(String brief) {
         this.brief = brief;
+    }
+
+    public Long getTelegramId() {
+        return telegramId;
+    }
+
+    public void setTelegramId(Long telegramId) {
+        this.telegramId = telegramId;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

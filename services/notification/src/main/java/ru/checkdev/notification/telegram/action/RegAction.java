@@ -10,6 +10,7 @@ import ru.checkdev.notification.telegram.config.TgConfig;
 import ru.checkdev.notification.telegram.service.TgAuthCallWebClient;
 
 import java.util.Calendar;
+import java.util.Map;
 
 /**
  * 3. Мидл
@@ -47,7 +48,7 @@ public class RegAction implements Action {
      * @return BotApiMethod<Message>
      */
     @Override
-    public BotApiMethod<Message> callback(Message message) {
+    public BotApiMethod<Message> callback(Message message, Map<String, String> bindingBy) {
         var chatId = message.getChatId().toString();
         var email = message.getText();
         var text = "";
@@ -57,6 +58,7 @@ public class RegAction implements Action {
             text = "Email: " + email + " не корректный." + sl
                    + "попробуйте снова." + sl
                    + "/new";
+            bindingBy.remove(chatId);
             return new SendMessage(chatId, text);
         }
 
@@ -70,6 +72,7 @@ public class RegAction implements Action {
             log.error("WebClient doPost error: {}", e.getMessage());
             text = "Сервис не доступен попробуйте позже" + sl
                    + "/start";
+            bindingBy.remove(chatId);
             return new SendMessage(chatId, text);
         }
 
@@ -77,6 +80,7 @@ public class RegAction implements Action {
 
         if (mapObject.containsKey(ERROR_OBJECT)) {
             text = "Ошибка регистрации: " + mapObject.get(ERROR_OBJECT);
+            bindingBy.remove(chatId);
             return new SendMessage(chatId, text);
         }
 
@@ -84,6 +88,7 @@ public class RegAction implements Action {
                + "Логин: " + email + sl
                + "Пароль: " + password + sl
                + urlSiteAuth;
+        bindingBy.remove(chatId);
         return new SendMessage(chatId, text);
     }
 }

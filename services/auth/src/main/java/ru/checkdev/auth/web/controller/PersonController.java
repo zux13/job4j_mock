@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.checkdev.auth.domain.Profile;
+import ru.checkdev.auth.dto.AccountInfoDTO;
 import ru.checkdev.auth.service.PersonService;
 import ru.checkdev.auth.service.RoleService;
 
@@ -18,8 +19,11 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 /**
  * @author parsentev
@@ -41,6 +45,13 @@ public class PersonController {
     @GetMapping("/current")
     public Profile getCurrent(Principal user) {
         return this.persons.findByEmail(user.getName()).get();
+    }
+
+    @GetMapping("/by-telegram/{telegramId}")
+    public List<AccountInfoDTO> getByTelegramId(@PathVariable Long telegramId) {
+        return this.persons.findByTelegramId(telegramId).stream()
+                .map(p -> new AccountInfoDTO(p.getEmail(), p.getUsername()))
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/hh")

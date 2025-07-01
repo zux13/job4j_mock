@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.checkdev.auth.domain.Profile;
+import ru.checkdev.auth.dto.BindDTO;
+import ru.checkdev.auth.dto.UnbindDTO;
 import ru.checkdev.auth.service.PersonService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +63,34 @@ public class AuthController {
         }).orElseGet(() -> new Object() {
             public String getError() {
                 return String.format("Пользователь с почтой %s уже существует.", profile.getEmail());
+            }
+        });
+    }
+
+    @PostMapping("/bind")
+    public Object bind(@RequestBody BindDTO bindDTO) {
+        Optional<Profile> result = this.persons.bindTelegram(bindDTO.getEmail(), bindDTO.getPassword(), bindDTO.getTelegramId());
+        return result.<Object>map(prs -> new Object() {
+            public Profile getPerson() {
+                return prs;
+            }
+        }).orElseGet(() -> new Object() {
+            public String getError() {
+                return "Неверный email или пароль.";
+            }
+        });
+    }
+
+    @PostMapping("/unbind")
+    public Object unbind(@RequestBody UnbindDTO unbindDTO) {
+        Optional<Profile> result = this.persons.unbindTelegram(unbindDTO.getEmail(), unbindDTO.getPassword());
+        return result.<Object>map(prs -> new Object() {
+            public Profile getPerson() {
+                return prs;
+            }
+        }).orElseGet(() -> new Object() {
+            public String getError() {
+                return "Неверный email или пароль.";
             }
         });
     }
