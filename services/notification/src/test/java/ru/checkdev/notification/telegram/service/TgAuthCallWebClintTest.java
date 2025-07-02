@@ -51,7 +51,6 @@ class TgAuthCallWebClintTest {
         tgAuthCallWebClient.setWebClient(webClientMock);
     }
 
-
     @Test
     void whenDoGetThenReturnPersonDTO() {
         Integer personId = 100;
