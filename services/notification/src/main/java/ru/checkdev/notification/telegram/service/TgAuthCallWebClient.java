@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import reactor.core.publisher.Mono;
 import ru.checkdev.notification.domain.AccountInfoDTO;
 import ru.checkdev.notification.domain.PersonDTO;
+import ru.checkdev.notification.service.CircuitBreaker;
 import ru.checkdev.notification.service.Retry;
 
 import java.util.List;
@@ -17,10 +18,12 @@ import java.util.List;
 public class TgAuthCallWebClient {
     private WebClient webClient;
     private final Retry retry;
+    private final CircuitBreaker circuitBreaker;
 
-    public TgAuthCallWebClient(@Value("${server.auth}") String urlAuth, Retry retry) {
+    public TgAuthCallWebClient(@Value("${server.auth}") String urlAuth, Retry retry, CircuitBreaker circuitBreaker) {
         this.webClient = WebClient.create(urlAuth);
         this.retry = retry;
+        this.circuitBreaker = circuitBreaker;
     }
 
     public void setWebClient(WebClient webClient) {
@@ -28,14 +31,14 @@ public class TgAuthCallWebClient {
     }
 
     /**
-     * Метод GET с применением Retry
+     * Метод GET с применением Retry и Circuit Breaker
      *
      * @param url URL http
      * @return Mono<Person>
      */
     public Mono<PersonDTO> doGet(String url) {
         try {
-            return Mono.justOrEmpty(retry.exec(
+            return Mono.justOrEmpty(circuitBreaker.exec(() -> retry.exec(
                     () -> webClient
                             .get()
                             .uri(url)
@@ -44,14 +47,16 @@ public class TgAuthCallWebClient {
                             .doOnError(err -> log.error("API not found: {}", err.getMessage()))
                             .block(),
                     null
-            ));
+            ), null));
+        } catch (CircuitBreaker.CircuitBreakerOpenException e) {
+            return fallbackGet(url, e);
         } catch (Exception e) {
             return fallbackGet(url, e);
         }
     }
 
     /**
-     * Метод POST с применением Retry
+     * Метод POST с применением Retry и Circuit Breaker
      *
      * @param url       URL http
      * @param dto       Body Object
@@ -59,7 +64,7 @@ public class TgAuthCallWebClient {
      */
     public Mono<Object> doPost(String url, Object dto) {
         try {
-            return Mono.justOrEmpty(retry.exec(
+            return Mono.justOrEmpty(circuitBreaker.exec(() -> retry.exec(
                     () -> webClient
                             .post()
                             .uri(url)
@@ -69,7 +74,9 @@ public class TgAuthCallWebClient {
                             .doOnError(err -> log.error("API not found: {}", err.getMessage()))
                             .block(),
                     null
-            ));
+            ), null));
+        } catch (CircuitBreaker.CircuitBreakerOpenException e) {
+            return fallbackPost(url, dto, e);
         } catch (Exception e) {
             return fallbackPost(url, dto, e);
         }
@@ -89,7 +96,7 @@ public class TgAuthCallWebClient {
 
     public Mono<List<AccountInfoDTO>> doGetList(String url) {
         try {
-            return Mono.justOrEmpty(retry.exec(
+            return Mono.justOrEmpty(circuitBreaker.exec(() -> retry.exec(
                     () -> webClient
                             .get()
                             .uri(url)
@@ -99,7 +106,9 @@ public class TgAuthCallWebClient {
                             .doOnError(err -> log.error("API not found: {}", err.getMessage()))
                             .block(),
                     null
-            ));
+            ), null));
+        } catch (CircuitBreaker.CircuitBreakerOpenException e) {
+            return fallbackGetList(url, e);
         } catch (Exception e) {
             return fallbackGetList(url, e);
         }

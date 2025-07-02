@@ -9,14 +9,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.checkdev.notification.domain.AccountInfoDTO;
 import ru.checkdev.notification.domain.PersonDTO;
-import ru.checkdev.notification.service.Retry;
+import ru.checkdev.notification.service.CircuitBreaker;
 
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,12 +45,14 @@ class TgAuthCallWebClintTest {
 
     @Mock
     private ru.checkdev.notification.service.Retry retryMock;
+    @Mock
+    private ru.checkdev.notification.service.CircuitBreaker circuitBreakerMock;
 
     private TgAuthCallWebClient tgAuthCallWebClient;
 
     @BeforeEach
     void setUp() {
-        tgAuthCallWebClient = new TgAuthCallWebClient(URL, retryMock);
+        tgAuthCallWebClient = new TgAuthCallWebClient(URL, retryMock, circuitBreakerMock);
         tgAuthCallWebClient.setWebClient(webClientMock);
     }
 
@@ -65,7 +66,7 @@ class TgAuthCallWebClintTest {
                 .set(Calendar.YEAR, 2023)
                 .build();
         var personDto = new PersonDTO("mail", "password", true, Collections.EMPTY_LIST, created);
-        when(retryMock.exec(any(Retry.Act.class), eq(null))).thenReturn(personDto);
+        when(circuitBreakerMock.exec(any(CircuitBreaker.Act.class), eq(null))).thenReturn(personDto);
         PersonDTO actual = tgAuthCallWebClient.doGet("/person/" + personId).block();
         assertThat(actual).isEqualTo(personDto);
     }
@@ -73,7 +74,7 @@ class TgAuthCallWebClintTest {
     @Test
     void whenDoGetThenReturnExceptionError() {
         Integer personId = 100;
-        when(retryMock.exec(any(Retry.Act.class), eq(null))).thenReturn(null);
+        when(circuitBreakerMock.exec(any(CircuitBreaker.Act.class), eq(null))).thenReturn(null);
         PersonDTO actual = tgAuthCallWebClient.doGet("/person/" + personId).block();
         assertThat(actual).isNull();
     }
@@ -86,7 +87,7 @@ class TgAuthCallWebClintTest {
                 .set(Calendar.YEAR, 2023)
                 .build();
         var personDto = new PersonDTO("mail", "password", true, null, created);
-        when(retryMock.exec(any(Retry.Act.class), eq(null))).thenReturn(personDto);
+        when(circuitBreakerMock.exec(any(CircuitBreaker.Act.class), eq(null))).thenReturn(personDto);
         Mono<Object> objectMono = tgAuthCallWebClient.doPost("/person/created", personDto);
         PersonDTO actual = (PersonDTO) objectMono.block();
         assertThat(actual).isEqualTo(personDto);
@@ -95,7 +96,7 @@ class TgAuthCallWebClintTest {
     @Test
     void whenDoGetListThenReturnListOfAccountInfoDTO() {
         List<AccountInfoDTO> accounts = List.of(new AccountInfoDTO("test@example.com", "testuser"));
-        when(retryMock.exec(any(Retry.Act.class), eq(null))).thenReturn(accounts);
+        when(circuitBreakerMock.exec(any(CircuitBreaker.Act.class), eq(null))).thenReturn(accounts);
 
         List<AccountInfoDTO> actual = tgAuthCallWebClient.doGetList("/accounts").block();
         assertThat(actual).isEqualTo(accounts);
@@ -103,7 +104,7 @@ class TgAuthCallWebClintTest {
 
     @Test
     void whenDoGetListThenReturnExceptionError() {
-        when(retryMock.exec(any(Retry.Act.class), eq(null))).thenReturn(null);
+        when(circuitBreakerMock.exec(any(CircuitBreaker.Act.class), eq(null))).thenReturn(null);
         List<AccountInfoDTO> actual = tgAuthCallWebClient.doGetList("/accounts").block();
         assertThat(actual).isNull();
     }
