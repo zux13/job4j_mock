@@ -43,9 +43,9 @@ public class TgRun {
                 "/start", new InfoAction(List.of(
                         "/start", "/new", "/check", "/bind", "/unbind")),
                 "/new", new RegAction(tgAuthCallWebClient, urlSiteAuth),
-                "/check", new CheckAction(tgAuthCallWebClient, urlSiteAuth),
-                "/bind", new BindAction(tgAuthCallWebClient, urlSiteAuth),
-                "/unbind", new UnbindAction(tgAuthCallWebClient, urlSiteAuth)
+                "/check", new CheckAction(tgAuthCallWebClient),
+                "/bind", new BindAction(tgAuthCallWebClient),
+                "/unbind", new UnbindAction(tgAuthCallWebClient)
         );
         try {
             BotMenu menu = new BotMenu(actionMap, username, token);

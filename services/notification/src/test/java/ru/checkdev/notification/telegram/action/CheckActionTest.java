@@ -12,10 +12,7 @@ import reactor.core.publisher.Mono;
 import ru.checkdev.notification.domain.AccountInfoDTO;
 import ru.checkdev.notification.telegram.service.TgAuthCallWebClient;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,7 +31,7 @@ class CheckActionTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        checkAction = new CheckAction(authCallWebClient, "http://test.url");
+        checkAction = new CheckAction(authCallWebClient);
         message = new Message();
         chat = new Chat();
         user = new User();
@@ -45,53 +42,46 @@ class CheckActionTest {
     }
 
     @Test
-    void handleReturnsNoAccountsMessageWhenListIsEmpty() {
-        when(authCallWebClient.doGetList(anyString())).thenReturn(Mono.just(Collections.emptyList()));
+    void handleReturnsNoAccountsMessageWhenNoAccountsFound() {
+        when(authCallWebClient.doGetByTelegram(anyString())).thenReturn(Mono.empty());
 
         SendMessage sendMessage = (SendMessage) checkAction.handle(message);
-        assertEquals("К вашему telegram-аккаунту не привязано ни одного аккаунта.", sendMessage.getText());
+        assertEquals("К вашему telegram-аккаунту не привязан ни один аккаунт.", sendMessage.getText());
         assertEquals("12345", sendMessage.getChatId());
     }
 
     @Test
     void handleReturnsAccountInfoWhenListIsNotEmpty() {
-        AccountInfoDTO account1 = new AccountInfoDTO("test1@example.com", "user1");
-        AccountInfoDTO account2 = new AccountInfoDTO("test2@example.com", "user2");
-        List<AccountInfoDTO> accounts = List.of(account1, account2);
+        AccountInfoDTO account = new AccountInfoDTO("test1@example.com", "user1");
 
-        when(authCallWebClient.doGetList(anyString())).thenReturn(Mono.just(accounts));
+        when(authCallWebClient.doGetByTelegram(anyString())).thenReturn(Mono.just(account));
 
         SendMessage sendMessage = (SendMessage) checkAction.handle(message);
-        String expectedText = "Привязанные аккаунты:" + System.lineSeparator()
-                + "---" + System.lineSeparator()
+        String expectedText = "Привязанный аккаунт:" + System.lineSeparator()
                 + "Email: test1@example.com" + System.lineSeparator()
-                + "Логин: user1" + System.lineSeparator()
-                + "---" + System.lineSeparator()
-                + "Email: test2@example.com" + System.lineSeparator()
-                + "Логин: user2" + System.lineSeparator();
+                + "Логин: user1";
         assertEquals(expectedText, sendMessage.getText());
         assertEquals("12345", sendMessage.getChatId());
     }
 
     @Test
     void handleReturnsServiceUnavailableMessageOnError() {
-        when(authCallWebClient.doGetList(anyString())).thenReturn(Mono.error(new RuntimeException("Service Down")));
+        when(authCallWebClient.doGetByTelegram(anyString())).thenReturn(Mono.error(new RuntimeException("Service Down")));
 
         SendMessage sendMessage = (SendMessage) checkAction.handle(message);
-        String expectedText = "Сервис не доступен попробуйте позже" + System.lineSeparator()
-                + "/start";
+        String expectedText = "Сервис недоступен, попробуйте позже." + System.lineSeparator() + "/start";
         assertEquals(expectedText, sendMessage.getText());
         assertEquals("12345", sendMessage.getChatId());
     }
 
     @Test
     void callbackCallsHandleMethod() {
-        when(authCallWebClient.doGetList(anyString())).thenReturn(Mono.just(Collections.emptyList()));
+        when(authCallWebClient.doGetByTelegram(anyString())).thenReturn(Mono.empty());
         Map<String, String> bindingBy = new HashMap<>();
         bindingBy.put("12345", "someValue");
 
         SendMessage sendMessage = (SendMessage) checkAction.callback(message, bindingBy);
-        assertEquals("К вашему telegram-аккаунту не привязано ни одного аккаунта.", sendMessage.getText());
+        assertEquals("К вашему telegram-аккаунту не привязан ни один аккаунт.", sendMessage.getText());
         assertEquals("12345", sendMessage.getChatId());
         assertEquals(0, bindingBy.size());
     }

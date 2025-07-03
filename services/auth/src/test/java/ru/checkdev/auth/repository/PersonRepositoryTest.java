@@ -11,8 +11,8 @@ import ru.checkdev.auth.dto.ProfileDTO;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;
-import java.util.List;
 import java.util.Calendar;
+import java.util.Optional;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -115,31 +115,22 @@ public class PersonRepositoryTest {
     }
 
     @Test
-    public void whenFindByTelegramIdThenReturnListOfProfiles() {
+    public void whenFindByTelegramIdThenReturnPresentOptional() {
         Profile profile1 = new Profile("user1", "user1@example.com", "pass1");
         profile1.setTelegramId(123L);
         profile1.setCreated(Calendar.getInstance());
         profile1.setUpdated(Calendar.getInstance());
         entityManager.persist(profile1);
-
-        Profile profile2 = new Profile("user2", "user2@example.com", "pass2");
-        profile2.setTelegramId(123L);
-        profile2.setCreated(Calendar.getInstance());
-        profile2.setUpdated(Calendar.getInstance());
-        entityManager.persist(profile2);
         entityManager.flush();
 
-        List<Profile> found = personRepository.findByTelegramId(123L);
-        assertNotNull(found);
-        assertEquals(2, found.size());
-        assertTrue(found.stream().anyMatch(p -> "user1@example.com".equals(p.getEmail())));
-        assertTrue(found.stream().anyMatch(p -> "user2@example.com".equals(p.getEmail())));
+        Optional<Profile> found = personRepository.findByTelegramId(123L);
+        assertTrue(found.isPresent());
+        assertEquals("user1@example.com", found.get().getEmail());
     }
 
     @Test
-    public void whenFindByTelegramIdThenReturnEmptyList() {
-        List<Profile> found = personRepository.findByTelegramId(999L);
-        assertNotNull(found);
+    public void whenFindByTelegramIdThenReturnEmptyOptional() {
+        Optional<Profile> found = personRepository.findByTelegramId(999L);
         assertTrue(found.isEmpty());
     }
 }

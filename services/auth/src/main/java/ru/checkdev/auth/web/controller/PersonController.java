@@ -19,10 +19,8 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 /**
@@ -48,10 +46,11 @@ public class PersonController {
     }
 
     @GetMapping("/by-telegram/{telegramId}")
-    public List<AccountInfoDTO> getByTelegramId(@PathVariable Long telegramId) {
-        return this.persons.findByTelegramId(telegramId).stream()
+    public ResponseEntity<AccountInfoDTO> getByTelegramId(@PathVariable Long telegramId) {
+        return persons.findByTelegramId(telegramId)
                 .map(p -> new AccountInfoDTO(p.getEmail(), p.getUsername()))
-                .collect(Collectors.toList());
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/hh")

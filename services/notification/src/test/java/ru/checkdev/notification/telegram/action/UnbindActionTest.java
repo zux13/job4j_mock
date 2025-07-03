@@ -34,7 +34,7 @@ class UnbindActionTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        unbindAction = new UnbindAction(authCallWebClient, "http://test.url");
+        unbindAction = new UnbindAction(authCallWebClient);
         bindingBy = new HashMap<>();
         message = new Message();
         chat = new Chat();

@@ -10,7 +10,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import reactor.core.publisher.Mono;
 import ru.checkdev.notification.domain.BindDTO;
-import ru.checkdev.notification.telegram.config.TgConfig;
 import ru.checkdev.notification.telegram.service.TgAuthCallWebClient;
 
 import java.util.HashMap;
@@ -35,7 +34,7 @@ class BindActionTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        bindAction = new BindAction(authCallWebClient, "http://test.url");
+        bindAction = new BindAction(authCallWebClient);
         bindingBy = new HashMap<>();
         message = new Message();
         chat = new Chat();

@@ -13,8 +13,6 @@ import ru.checkdev.auth.domain.Notify;
 import ru.checkdev.auth.domain.Profile;
 import ru.checkdev.auth.repository.PersonRepository;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -277,29 +275,25 @@ class PersonServiceTest {
     }
 
     @Test
-    void findByTelegramIdReturnsListOfProfiles() {
-        Profile profile1 = new Profile("user1", "user1@example.com", "pass1");
-        profile1.setTelegramId(123L);
-        Profile profile2 = new Profile("user2", "user2@example.com", "pass2");
-        profile2.setTelegramId(123L);
-        List<Profile> expectedProfiles = List.of(profile1, profile2);
+    void findByTelegramIdReturnsPresentOptinal() {
+        Profile expectedProfile = new Profile("user1", "user1@example.com", "pass1");
+        expectedProfile.setTelegramId(123L);
 
-        when(persons.findByTelegramId(123L)).thenReturn(expectedProfiles);
+        when(persons.findByTelegramId(123L)).thenReturn(Optional.of(expectedProfile));
 
-        List<Profile> actualProfiles = personService.findByTelegramId(123L);
+        Optional<Profile> actualProfile = personService.findByTelegramId(123L);
 
-        assertEquals(expectedProfiles.size(), actualProfiles.size());
-        assertTrue(actualProfiles.containsAll(expectedProfiles));
+        assertEquals(expectedProfile, actualProfile.get());
         verify(persons, times(1)).findByTelegramId(123L);
     }
 
     @Test
-    void findByTelegramIdReturnsEmptyListWhenNoProfilesFound() {
-        when(persons.findByTelegramId(999L)).thenReturn(Collections.emptyList());
+    void findByTelegramIdReturnsEmptyOptionalWhenNoProfilesFound() {
+        when(persons.findByTelegramId(999L)).thenReturn(Optional.empty());
 
-        List<Profile> actualProfiles = personService.findByTelegramId(999L);
+        Optional<Profile> actual = personService.findByTelegramId(999L);
 
-        assertTrue(actualProfiles.isEmpty());
+        assertTrue(actual.isEmpty());
         verify(persons, times(1)).findByTelegramId(999L);
     }
 }

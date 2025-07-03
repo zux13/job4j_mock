@@ -335,7 +335,7 @@ public class PersonService {
         return result;
     }
 
-    public List<Profile> findByTelegramId(Long telegramId) {
+    public Optional<Profile> findByTelegramId(Long telegramId) {
         return this.persons.findByTelegramId(telegramId);
     }
 }

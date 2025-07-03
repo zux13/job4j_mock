@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.checkdev.notification.domain.AccountInfoDTO;
@@ -13,12 +12,10 @@ import ru.checkdev.notification.domain.PersonDTO;
 
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -100,30 +97,6 @@ class TgAuthCallWebClintTest {
     }
 
     @Test
-    void whenDoGetListThenReturnListOfAccountInfoDTO() {
-        List<AccountInfoDTO> accounts = List.of(new AccountInfoDTO("test@example.com", "testuser"));
-        when(webClientMock.get()).thenReturn(requestHeadersUriMock);
-        when(requestHeadersUriMock.uri("/accounts")).thenReturn(requestHeadersMock);
-        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
-        when(responseMock.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.just(accounts));
-
-        List<AccountInfoDTO> actual = tgAuthCallWebClient.doGetList("/accounts").block();
-        assertThat(actual).isEqualTo(accounts);
-    }
-
-    @Test
-    void whenDoGetListThenReturnExceptionError() {
-        when(webClientMock.get()).thenReturn(requestHeadersUriMock);
-        when(requestHeadersUriMock.uri("/accounts")).thenReturn(requestHeadersMock);
-        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
-        when(responseMock.bodyToMono(any(ParameterizedTypeReference.class))).thenReturn(Mono.error(new RuntimeException("List Error")));
-
-        assertThatThrownBy(() -> tgAuthCallWebClient.doGetList("/accounts").block())
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("List Error");
-    }
-
-    @Test
     void fallbackGetReturnsEmptyMono() {
         Mono<PersonDTO> result = tgAuthCallWebClient.fallbackGet("/test", new RuntimeException("Test Exception"));
         assertTrue(result.blockOptional().isEmpty());
@@ -136,8 +109,8 @@ class TgAuthCallWebClintTest {
     }
 
     @Test
-    void fallbackGetListReturnsEmptyMono() {
-        Mono<List> result = tgAuthCallWebClient.fallbackGetList("/test", new RuntimeException("Test Exception"));
+    void fallbackGetByTelegramReturnsEmptyMono() {
+        Mono<AccountInfoDTO> result = tgAuthCallWebClient.fallbackGetByTelegram("/test", new RuntimeException("Test Exception"));
         assertTrue(result.blockOptional().isEmpty());
     }
 }

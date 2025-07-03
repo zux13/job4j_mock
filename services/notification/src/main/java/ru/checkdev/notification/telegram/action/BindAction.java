@@ -20,7 +20,6 @@ public class BindAction implements Action {
     private final TgConfig tgConfig = new TgConfig("tg/", 8);
     private final String sl = System.lineSeparator();
     private final TgAuthCallWebClient authCallWebClint;
-    private final String urlSiteAuth;
 
     @Override
     public BotApiMethod<Message> handle(Message message) {
