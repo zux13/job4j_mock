@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Service
 public class CategoriesService {
+
+    private final static int MOST_POPULAR_TYPE = 1;
     private final TopicsService topicsService;
     private final InterviewsService interviewsService;
 
@@ -66,7 +68,7 @@ public class CategoriesService {
 
     public List<CategoryDTO> getMostPopular() throws JsonProcessingException {
         var categoriesDTO = getPopularFromDesc();
-        List<InterviewDTO> newInterviews = interviewsService.getByType(1);
+        List<InterviewDTO> newInterviews = interviewsService.getByType(MOST_POPULAR_TYPE);
         Map<Integer, Integer> newInterviewByTopicId = newInterviews.stream()
                 .collect(Collectors.groupingBy(
                         InterviewDTO::getTopicId,
