@@ -1,0 +1,99 @@
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_checkdev
+    environment:
+      POSTGRES_USER: compose-postgres
+      POSTGRES_PASSWORD: compose-postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compose-postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  auth:
+    build: ./services/auth
+    ports:
+      - "9900:9900"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/cd_auth
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SERVER_NOTIFICATION=http://notification:9920
+      - USER_INFO_URI=http://auth:9900/user
+    depends_on:
+      db:
+        condition: service_healthy
+
+  desc:
+    build: ./services/desc
+    ports:
+      - "9902:9902"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/cd_desc
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SERVER_NOTIFICATION=http://notification:9920
+      - SERVICE_AUTH=http://auth:9900
+      - USER_INFO_URI=http://auth:9900/user
+    depends_on:
+      db:
+        condition: service_healthy
+
+  mock:
+    build: ./services/mock
+    ports:
+      - "9912:9912"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mock
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SERVER_NOTIFICATION=http://notification:9920
+      - SERVICE_AUTH=http://auth:9900
+      - USER_INFO_URI=http://auth:9900/user
+    depends_on:
+      db:
+        condition: service_healthy
+
+  notification:
+    build: ./services/notification
+    ports:
+      - "9920:9920"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/cd_notification
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SERVER_AUTH=http://auth:9900
+      - SERVER_SITE_URL_LOGIN=http://site:8080/login
+      - USER_INFO_URI=http://auth:9900/user
+    depends_on:
+      db:
+        condition: service_healthy
+
+  site:
+    build: ./services/site
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/cd_site
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SERVER_AUTH=http://auth:9900
+      - SERVER_AUTH_PING=http://auth:9900/ping
+      - USER_INFO_URI=http://auth:9900/user
+      - TOKEN_URI=http://auth:9900/oauth/token
+      - SERVER_NOTIFICATION=http://notification:9920
+      - SERVER_DESC=http://desc:9902/
+      - SERVICE_MOCK=http://mock:9912
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

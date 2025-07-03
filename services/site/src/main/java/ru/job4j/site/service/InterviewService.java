@@ -3,6 +3,7 @@ package ru.job4j.site.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.job4j.site.domain.StatusInterview;
 import ru.job4j.site.domain.StatusWisher;
@@ -16,17 +17,22 @@ import java.util.List;
 
 @Service
 public class InterviewService {
-    private static final String URL_MOCK = "http://localhost:9912/interview/";
-    private final ProfilesService profilesService;
 
-    public InterviewService(ProfilesService profilesService) {
+    private final String baseUrl;
+    private final ProfilesService profilesService;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    public InterviewService(
+            ProfilesService profilesService,
+            @Value("${service.mock}") String baseUrl
+    ) {
         this.profilesService = profilesService;
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     }
 
     public InterviewDTO create(String token, InterviewDTO interviewDTO) throws JsonProcessingException {
         interviewDTO.setStatus(StatusInterview.IS_NEW.getId());
-        var mapper = new ObjectMapper();
-        var out = new RestAuthCall(URL_MOCK).post(
+        var out = new RestAuthCall(baseUrl + "/interview/").post(
                 token,
                 mapper.writeValueAsString(interviewDTO)
         );
@@ -34,15 +40,13 @@ public class InterviewService {
     }
 
     public InterviewDTO getById(String token, int id) throws JsonProcessingException {
-        var text = new RestAuthCall(String.format("%s%d", URL_MOCK, id))
+        var text = new RestAuthCall(String.format("%s/interview/%d", baseUrl, id))
                 .get(token);
-        return new ObjectMapper().readValue(text, new TypeReference<>() {
-        });
+        return mapper.readValue(text, new TypeReference<>() {});
     }
 
     public void update(String token, InterviewDTO interviewDTO) throws JsonProcessingException {
-        var mapper = new ObjectMapper();
-        new RestAuthCall(URL_MOCK).update(
+        new RestAuthCall(baseUrl + "/interview/").update(
                 token,
                 mapper.writeValueAsString(interviewDTO));
     }
@@ -55,7 +59,7 @@ public class InterviewService {
      * @param newStatus int New status
      */
     public void updateStatus(String token, int id, int newStatus) {
-        new RestAuthCall(String.format("%sstatus/?id=%d&newStatus=%d", URL_MOCK, id, newStatus))
+        new RestAuthCall(String.format("%s/interview/status/?id=%d&newStatus=%d", baseUrl, id, newStatus))
                 .put(token, "");
     }
 
@@ -82,7 +86,8 @@ public class InterviewService {
         for (WisherDto wisherDto : wishers) {
             var person = profilesService.getProfileById(wisherDto.getUserId());
             if (person.isPresent()) {
-                var wisherUser = new WisherDetailDTO(wisherDto.getId(),
+                var wisherUser = new WisherDetailDTO(
+                        wisherDto.getId(),
                         wisherDto.getInterviewId(),
                         wisherDto.getUserId(),
                         person.get().getUsername(),

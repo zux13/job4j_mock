@@ -25,27 +25,33 @@ public class InterceptorSite implements HandlerInterceptor {
     private final AuthService authService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        UserInfoDTO userInfo = getUserInfo(request);
+        request.setAttribute("userInfo", userInfo);
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        var userInfo = getUserInfo(request);
-        if (modelAndView != null) {
+        var userInfo = (UserInfoDTO) request.getAttribute("userInfo");
+        if (modelAndView != null && userInfo != null) {
             modelAndView.addObject("userInfo", userInfo);
         }
     }
 
     private UserInfoDTO getUserInfo(HttpServletRequest request) {
-        var token = (String) request.getSession().getAttribute("token");
+        var session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        var token = (String) session.getAttribute("token");
         if (token == null) {
             return null;
         }
         try {
             return authService.userInfo(token);
         } catch (Exception e) {
-            log.error("UserInfo data available. {}", e.getMessage());
+            log.error("UserInfo data unavailable. {}", e.getMessage());
             return null;
         }
     }

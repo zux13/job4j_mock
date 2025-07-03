@@ -1,0 +1,5 @@
+CREATE DATABASE cd_auth;
+CREATE DATABASE cd_desc;
+CREATE DATABASE cd_notification;
+CREATE DATABASE cd_site;
+CREATE DATABASE mock;
