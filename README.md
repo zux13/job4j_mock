@@ -255,3 +255,26 @@ docker compose logs -f <имя_сервиса>
 ```
 Если появятся вопросы или проблемы, можно проверить состояние volume, сетей и контейнеров с помощью команд `docker volume ls`, `docker network ls`, `docker ps -a`.
 
+---
+#### Запуск в Kubernetes
+Убедитесь, что у вас установлены:
+
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+- [Docker](https://docs.docker.com/engine/install/)
+
+```bash
+# Запустите кластер Minikube
+minikube start --driver=docker
+
+# Сделайте скрипт исполняемым
+chmod +x k8s_deploy.sh
+
+# Запустите деплой
+bash ./k8s_deploy.sh
+```
+
+После этого приложение будет доступно по адресу:
+```bash
+http://$(minikube ip):30880
+```

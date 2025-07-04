@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: desc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: desc
+  template:
+    metadata:
+      labels:
+        app: desc
+    spec:
+      containers:
+        - name: desc
+          image: desc:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9902
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://db:5432/cd_desc"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "k8s-postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "k8s-password"
+            - name: SERVER_NOTIFICATION
+              value: "http://notification:9920"
+            - name: SERVICE_AUTH
+              value: "http://auth:9900"
+            - name: USER_INFO_URI
+              value: "http://auth:9900/user"

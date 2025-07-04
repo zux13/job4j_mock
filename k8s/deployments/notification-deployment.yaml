@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+    spec:
+      containers:
+        - name: notification
+          image: notification:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9920
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://db:5432/cd_notification"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "k8s-postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "k8s-password"
+            - name: SERVER_SITE_URL_LOGIN
+              value: "http://site:8080/login"
+            - name: SERVER_AUTH
+              value: "http://auth:9900"
+            - name: USER_INFO_URI
+              value: "http://auth:9900/user"
